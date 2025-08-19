@@ -1,1 +1,31 @@
 @import "tailwindcss";
+
+/* Calm blue gradient used across the app */
+:root {
+  --app-gradient: linear-gradient(
+    180deg,
+    #0369a1 0%,
+    #60a5fa 40%,
+    #bae6fd 100%
+  );
+}
+
+/* Prevent horizontal overflow only */
+html,
+body,
+#root {
+  overflow-x: hidden;
+  min-height: 100%;
+}
+
+body,
+#root {
+  background: var(--app-gradient);
+  background-attachment: fixed;
+}
+
+/* Utility class to apply the gradient to any top-level container */
+.app-bg {
+  background: var(--app-gradient);
+  min-height: 100vh;
+}

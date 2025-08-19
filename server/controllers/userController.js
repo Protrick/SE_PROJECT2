@@ -12,16 +12,14 @@ export const getUserProfile = async (req, res) => {
     if (!user) {
       return res.json({
         success: false,
-        userData: {
-          name: user.name,
-          isAccountVerified: user.isAccountVerified,
-        },
+        message: "User not found",
+        userdata: null,
       });
     }
 
     return res.json({
       success: true,
-      userData: {
+      userdata: {
         name: user.name,
         email: user.email,
         isAccountVerified: user.isAccountVerified,
