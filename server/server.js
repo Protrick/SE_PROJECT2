@@ -4,14 +4,21 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
+import teamRouter from "./routes/team.routes.js";
 import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+
+// Use FRONTEND_URL (single origin) if provided; otherwise default to the requested dev origin.
+const allowedOrigin = process.env.FRONTEND_URL || "http://localhost:5175";
+
+console.log("Allowed frontend origin:", allowedOrigin);
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowedOrigin,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -20,10 +27,11 @@ app.use(
 app.use(cookieParser());
 
 app.get("/", (req, res) => {
-  res.send("Hello Pratik!");
+  res.send("Hello User!");
 });
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
+app.use("/api/team", teamRouter);
 
 async function connectDB() {
   try {

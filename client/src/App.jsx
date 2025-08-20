@@ -3,6 +3,9 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import JoinTeam from './pages/JoinTeam.jsx'
 import CreateTeam from './pages/CreateTeam.jsx'
+import CreatedTeams from './pages/CreatedTeams.jsx'
+import AppliedTeams from './pages/AppliedTeams.jsx'
+import TeamDetails from './pages/TeamDetails.jsx'
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
@@ -26,8 +29,11 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/join-team" element={<JoinTeam />} />
             <Route path="/create-team" element={<CreateTeam />} />
-            <Route path="/live-opening-creator-view" element={<LiveOpeningCreatorView />} />
-            <Route path="/live-opening-joining-view" element={<LiveOpeningJoiningView />} />
+            <Route path="/created-teams" element={<CreatedTeams />} />
+            <Route path="/applied-teams" element={<AppliedTeams />} />
+            <Route path="/team/:teamId" element={<TeamDetails />} />
+            <Route path="/live-opening-creator-view/:teamId" element={<LiveOpeningCreatorView />} />
+            <Route path="/live-opening-joining-view/:teamId" element={<LiveOpeningJoiningView />} />
             <Route path="/reset-password" element={<ResetPassword />} />
           </Routes>
         </div>

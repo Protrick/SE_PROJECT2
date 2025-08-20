@@ -2,7 +2,7 @@ import usermodel from "../models/user.model.js";
 
 export const getUserProfile = async (req, res) => {
   try {
-    const userId = req.user.id; // ✅ Get from token
+    const userId = req.user.id;
     if (!userId) {
       return res.json({ success: false, message: "User ID not found" });
     }
