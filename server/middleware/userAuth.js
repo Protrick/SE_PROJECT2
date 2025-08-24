@@ -14,7 +14,7 @@ const userAuth = (req, res, next) => {
   try {
     const token_decoded = jwt.verify(token, process.env.JWT_SECRET);
     if (token_decoded && token_decoded.id) {
-      req.user = { id: token_decoded.id }; // ✅ Best practice
+      req.user = { id: token_decoded.id };
       next();
     } else {
       return res

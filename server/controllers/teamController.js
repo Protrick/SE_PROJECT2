@@ -60,6 +60,7 @@ export const showCreatedTeams = async (req, res) => {
       .find({ creator: creatorObjId })
       .populate("creator", "name email")
       .populate("applicants.user", "name email")
+      .populate("rejectedApplicants.user", "name email")
       .populate("members", "name email")
       .sort({ createdAt: -1 });
 
@@ -75,24 +76,27 @@ export const showCreatedTeams = async (req, res) => {
 export const showAvailableTeams = async (req, res) => {
   try {
     const requesterId = req.user?.id; // may be undefined for anonymous callers
+
     // If authenticated, use the user's domain as the filter (overrides query)
     if (requesterId && req.user?.domain) {
       req.query = req.query || {};
       req.query.domain = String(req.user.domain).trim().toLowerCase();
     }
-    // Require domain parameter (domain the user has chosen)
+
+    // Require domain parameter
     let { domain } = req.query;
-    if (!domain)
+    if (!domain) {
       return res.status(400).json({
         success: false,
         message: "domain query parameter is required",
       });
+    }
 
     domain = String(domain).trim().toLowerCase();
 
-    const query = { isOpen: true, domain };
-
-    // Exclude teams created by the requester (if authenticated)
+    // Base query: only open teams in requested domain.
+    // If requesterId is provided and valid, exclude teams created by that user.
+    let query = { isOpen: true, domain };
     if (requesterId && mongoose.Types.ObjectId.isValid(requesterId)) {
       query.creator = { $ne: new mongoose.Types.ObjectId(requesterId) };
     }
@@ -101,6 +105,7 @@ export const showAvailableTeams = async (req, res) => {
       .find(query)
       .populate("creator", "name email")
       .populate("applicants.user", "name email")
+      .populate("rejectedApplicants.user", "name email")
       .populate("members", "name email")
       .sort({ createdAt: -1 });
 
@@ -158,14 +163,14 @@ export const applyToTeam = async (req, res) => {
         .json({ success: false, message: "Team not found" });
 
     // prevent applying to your own team
-    if (team.creator.toString() === applicantId)
+    if (String(team.creator) === String(applicantId))
       return res
         .status(400)
         .json({ success: false, message: "Cannot apply to your own team" });
 
     // prevent duplicate applications
     const alreadyApplied = team.applicants.some(
-      (a) => a.user && a.user.toString() === applicantId
+      (a) => a.user && String(a.user) === String(applicantId)
     );
     if (alreadyApplied)
       return res
@@ -173,7 +178,9 @@ export const applyToTeam = async (req, res) => {
         .json({ success: false, message: "Already applied" });
 
     // prevent applying if already a member
-    const isMember = team.members.some((m) => m.toString() === applicantId);
+    const isMember = team.members.some(
+      (m) => String(m) === String(applicantId)
+    );
     if (isMember)
       return res
         .status(400)
@@ -206,9 +213,12 @@ export const appliedTeams = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
 
     const teams = await teamModel
-      .find({ "applicants.user": userId })
+      .find({
+        $or: [{ "applicants.user": userId }, { "rejectedApplicants.user": userId }],
+      })
       .populate("creator", "name email")
       .populate("applicants.user", "name email")
+      .populate("rejectedApplicants.user", "name email")
       .populate("members", "name email")
       .sort({ createdAt: -1 });
 
@@ -233,6 +243,7 @@ export const getTeamById = async (req, res) => {
       .findById(teamId)
       .populate("creator", "name email")
       .populate("applicants.user", "name email")
+      .populate("rejectedApplicants.user", "name email")
       .populate("members", "name email");
 
     if (!team)
@@ -269,12 +280,12 @@ export const acceptApplicant = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Team not found" });
 
-    if (team.creator.toString() !== requesterId)
+    if (String(team.creator) !== String(requesterId))
       return res.status(403).json({ success: false, message: "Forbidden" });
 
     // find applicant subdoc
     const applicantIndex = team.applicants.findIndex(
-      (a) => a.user && a.user.toString() === applicantId
+      (a) => a.user && String(a.user) === String(applicantId)
     );
     if (applicantIndex === -1)
       return res
@@ -330,18 +341,29 @@ export const rejectApplicant = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Team not found" });
 
-    if (team.creator.toString() !== requesterId)
+    if (String(team.creator) !== String(requesterId))
       return res.status(403).json({ success: false, message: "Forbidden" });
 
     const applicantIndex = team.applicants.findIndex(
-      (a) => a.user && a.user.toString() === applicantId
+      (a) => a.user && String(a.user) === String(applicantId)
     );
     if (applicantIndex === -1)
       return res
         .status(404)
         .json({ success: false, message: "Applicant not found" });
 
+    // Move applicant to rejectedApplicants so they can still see they were rejected
+    const applicant = team.applicants[applicantIndex];
+    team.rejectedApplicants.push({
+      user: applicant.user,
+      linkedin: applicant.linkedin,
+      github: applicant.github,
+      resume: applicant.resume,
+      appliedAt: applicant.appliedAt,
+      rejectedAt: new Date(),
+    });
     team.applicants.splice(applicantIndex, 1);
+
     await team.save();
 
     return res

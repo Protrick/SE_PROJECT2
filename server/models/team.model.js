@@ -23,6 +23,21 @@ const teamSchema = new mongoose.Schema(
         appliedAt: { type: Date, default: Date.now },
       },
     ],
+    // Keep a record of rejected applications so applicants can still see they were rejected
+    rejectedApplicants: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        linkedin: { type: String },
+        github: { type: String },
+        resume: { type: String },
+        appliedAt: { type: Date },
+        rejectedAt: { type: Date, default: Date.now },
+      },
+    ],
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     isOpen: { type: Boolean, default: true },
   },

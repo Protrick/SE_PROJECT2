@@ -59,7 +59,10 @@ export const TeamContextProvider = ({ children }) => {
                 withCredentials: true,
             });
             if (data.success) {
-                setAvailableTeams(data.teams || []);
+                // Defensive client-side filter: always remove teams created by the current user
+                const teams = data.teams || [];
+                const filtered = userdata?._id ? teams.filter(t => t.creator?._id !== userdata._id) : teams;
+                setAvailableTeams(filtered);
             } else {
                 toast.error(data.message || 'Failed to load available teams');
             }
@@ -143,10 +146,10 @@ export const TeamContextProvider = ({ children }) => {
         }
     };
 
-    const withdrawApplication = async (teamId) => {
+    const withdrawApplication = async (teamId, applicantId) => {
         try {
             setLoading(true);
-            const { data } = await axios.post(`${backendUrl}/api/team/${teamId}/withdraw`, {}, { withCredentials: true });
+            const { data } = await axios.post(`${backendUrl}/api/team/${teamId}/applicants/${applicantId}/withdraw`, {}, { withCredentials: true });
             if (data.success) {
                 toast.success(data.message || 'Application withdrawn');
                 return true;

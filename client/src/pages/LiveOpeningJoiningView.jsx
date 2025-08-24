@@ -1,11 +1,15 @@
 import React, { useState, useContext, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { TeamContext } from '../context/TeamContext'
+import { AppContext } from '../context/AppContext'
 
 const LiveOpeningJoiningView = () => {
-  const { teamId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const teamId = params.get('teamId');
   const { getTeamById, withdrawApplication, loading } = useContext(TeamContext);
+  const { userdata } = useContext(AppContext);
   const [team, setTeam] = useState(null);
   const [userApplication, setUserApplication] = useState(null);
   const [loadingTeam, setLoadingTeam] = useState(true);
@@ -15,10 +19,11 @@ const LiveOpeningJoiningView = () => {
     const teamData = await getTeamById(teamId);
     setTeam(teamData);
 
-    // Find current user's application - you'll need to implement user auth to get current user ID
-    // For now, this is a placeholder - replace with actual user ID from auth context
-    const currentUserId = localStorage.getItem('userId'); // or get from auth context
-    const application = teamData?.applicants?.find(app => app.user._id === currentUserId);
+    // Find current user's application using authenticated user from AppContext
+    const currentUserId = userdata?._id;
+    const application = teamData?.applicants?.find(app =>
+      String(app.user?._id ?? app.user) === String(currentUserId)
+    );
     setUserApplication(application);
     setLoadingTeam(false);
   }
@@ -28,7 +33,8 @@ const LiveOpeningJoiningView = () => {
   }, [teamId]);
 
   const onWithdraw = async () => {
-    const success = await withdrawApplication(teamId);
+    const applicantId = String(userApplication?.user?._id ?? userApplication?.user);
+    const success = await withdrawApplication(teamId, applicantId);
     if (success) {
       navigate('/applied-teams');
     }

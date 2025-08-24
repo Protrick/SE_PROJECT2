@@ -34,6 +34,8 @@ function App() {
             <Route path="/team/:teamId" element={<TeamDetails />} />
             <Route path="/live-opening-creator-view/:teamId" element={<LiveOpeningCreatorView />} />
             <Route path="/live-opening-joining-view/:teamId" element={<LiveOpeningJoiningView />} />
+            {/* Allow opening-joining view to accept teamId via query string as used by AppliedTeams */}
+            <Route path="/live-opening-joining-view" element={<LiveOpeningJoiningView />} />
             <Route path="/reset-password" element={<ResetPassword />} />
           </Routes>
         </div>

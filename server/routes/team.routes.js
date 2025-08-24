@@ -1,5 +1,6 @@
 import express from "express";
 import userAuth from "../middleware/userAuth.js";
+import optionalUserAuth from "../middleware/optionalUserAuth.js";
 import {
   createTeam,
   applyToTeam,
@@ -18,8 +19,8 @@ const router = express.Router();
 router.post("/", userAuth, createTeam);
 // list teams created by the authenticated user
 router.get("/created", userAuth, showCreatedTeams);
-// list available teams (optionally filtered by domain via ?domain=...)
-router.get("/available", showAvailableTeams);
+ // list available teams (optionally filtered by domain via ?domain=...)
+router.get("/available", optionalUserAuth, showAvailableTeams);
 // Apply to a team (require auth and links)
 router.post("/:teamId/apply", userAuth, applyToTeam);
 // get team by id

@@ -1,17 +1,20 @@
 import React, { useState, useContext, useEffect } from 'react'
 import { TeamContext } from '../context/TeamContext'
+import { AppContext } from '../context/AppContext'
 
 const JoinTeam = () => {
   const { getAvailableTeams, availableTeams, applyToTeam, loading } = useContext(TeamContext);
+  const { userdata } = useContext(AppContext);
   const [domain, setDomain] = useState('frontend');
+  const [query, setQuery] = useState('');
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [linkedin, setLinkedin] = useState('');
   const [github, setGithub] = useState('');
   const [resume, setResume] = useState('');
 
   useEffect(() => {
-    getAvailableTeams(domain);
-  }, [domain]);
+    getAvailableTeams(domain, query);
+  }, [domain, query]);
 
   const onApply = async (teamId) => {
     if (!linkedin || !github || !resume) {
@@ -62,7 +65,7 @@ const JoinTeam = () => {
           </div>
         )}
 
-        {availableTeams.map(team => (
+        {(userdata?._id ? availableTeams.filter(t => t.creator?._id !== userdata._id) : availableTeams).map(team => (
           <div key={team._id} className="border border-gray-200 p-6 rounded-lg shadow-sm bg-white">
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1">
@@ -80,8 +83,8 @@ const JoinTeam = () => {
               <button
                 onClick={() => setSelectedTeam(selectedTeam?._id === team._id ? null : team)}
                 className={`px-4 py-2 rounded-lg font-medium ${selectedTeam?._id === team._id
-                    ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    : 'bg-green-600 text-white hover:bg-green-700'
+                  ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-green-600 text-white hover:bg-green-700'
                   }`}
               >
                 {selectedTeam?._id === team._id ? 'Cancel' : 'Apply'}

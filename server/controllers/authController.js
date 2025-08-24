@@ -24,7 +24,11 @@ export const register = async (req, res) => {
 
     await user.save();
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const domainValue = user.domain
+      ? String(user.domain).trim().toLowerCase()
+      : String(user.email).split("@")[1]?.trim().toLowerCase();
+    const tokenPayload = { id: user._id, domain: domainValue };
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
@@ -67,7 +71,11 @@ export const login = async (req, res) => {
       return res.json({ success: false, message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const domainValue = user.domain
+      ? String(user.domain).trim().toLowerCase()
+      : String(user.email).split("@")[1]?.trim().toLowerCase();
+    const tokenPayload = { id: user._id, domain: domainValue };
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
     res.cookie("token", token, {
