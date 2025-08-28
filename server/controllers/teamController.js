@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
 import teamModel from "../models/team.model.js";
+import { transporter } from "../config/nodemailer.js";
+import { configDotenv } from "dotenv";
+configDotenv();
 
 // Create a team for a specific domain
 export const createTeam = async (req, res) => {
@@ -77,14 +80,11 @@ export const showAvailableTeams = async (req, res) => {
   try {
     const requesterId = req.user?.id; // may be undefined for anonymous callers
 
-    // If authenticated, use the user's domain as the filter (overrides query)
-    if (requesterId && req.user?.domain) {
-      req.query = req.query || {};
-      req.query.domain = String(req.user.domain).trim().toLowerCase();
-    }
+    // Get domain: prefer explicit query param; otherwise, if user is authenticated and has a domain, use that.
+    let domain =
+      (req.query && req.query.domain) ||
+      (req.user?.domain ? String(req.user.domain) : undefined);
 
-    // Require domain parameter
-    let { domain } = req.query;
     if (!domain) {
       return res.status(400).json({
         success: false,
@@ -94,9 +94,10 @@ export const showAvailableTeams = async (req, res) => {
 
     domain = String(domain).trim().toLowerCase();
 
-    // Base query: only open teams in requested domain.
-    // If requesterId is provided and valid, exclude teams created by that user.
-    let query = { isOpen: true, domain };
+    // Base filter: open teams in the requested domain
+    const query = { isOpen: true, domain };
+
+    // Exclude teams created by the requester (if authenticated)
     if (requesterId && mongoose.Types.ObjectId.isValid(requesterId)) {
       query.creator = { $ne: new mongoose.Types.ObjectId(requesterId) };
     }
@@ -105,7 +106,6 @@ export const showAvailableTeams = async (req, res) => {
       .find(query)
       .populate("creator", "name email")
       .populate("applicants.user", "name email")
-      .populate("rejectedApplicants.user", "name email")
       .populate("members", "name email")
       .sort({ createdAt: -1 });
 
@@ -156,35 +156,47 @@ export const applyToTeam = async (req, res) => {
       });
     }
 
-    const team = await teamModel.findById(teamId);
+    const requesterId = req.user?.id;
+    const team = await teamModel
+      .findById(teamId)
+      .populate("creator", "name email");
+
     if (!team)
       return res
         .status(404)
         .json({ success: false, message: "Team not found" });
 
-    // prevent applying to your own team
-    if (String(team.creator) === String(applicantId))
-      return res
-        .status(400)
-        .json({ success: false, message: "Cannot apply to your own team" });
-
-    // prevent duplicate applications
-    const alreadyApplied = team.applicants.some(
-      (a) => a.user && String(a.user) === String(applicantId)
-    );
-    if (alreadyApplied)
+    // Prevent applying to own team
+    if (
+      requesterId &&
+      String(team.creator?._id || team.creator) === String(requesterId)
+    ) {
       return res
         .status(409)
-        .json({ success: false, message: "Already applied" });
+        .json({ success: false, message: "Cannot apply to your own team" });
+    }
 
-    // prevent applying if already a member
-    const isMember = team.members.some(
-      (m) => String(m) === String(applicantId)
+    // Prevent duplicate application
+    const alreadyApplied = (team.applicants || []).some(
+      (a) => String(a.user?._id || a.user) === String(requesterId)
     );
-    if (isMember)
-      return res
-        .status(400)
-        .json({ success: false, message: "Already a member" });
+    if (alreadyApplied) {
+      return res.status(409).json({
+        success: false,
+        message: "You have already applied to this team",
+      });
+    }
+
+    // Also prevent if already a member
+    const isMember = (team.members || []).some(
+      (m) => String(m._id || m) === String(requesterId)
+    );
+    if (isMember) {
+      return res.status(409).json({
+        success: false,
+        message: "You are already a member of this team",
+      });
+    }
 
     // push applicant subdocument
     team.applicants.push({
@@ -208,19 +220,36 @@ export const applyToTeam = async (req, res) => {
 
 export const appliedTeams = async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId)
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+    const requesterId = req.user?.id;
+    if (!requesterId) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Authentication required" });
+    }
 
+    console.log("appliedTeams - Looking for user:", requesterId);
+
+    // Find teams where user is either:
+    // 1. In applicants array (pending)
+    // 2. In members array (accepted)
+    // 3. In rejectedApplicants array (rejected)
     const teams = await teamModel
       .find({
-        $or: [{ "applicants.user": userId }, { "rejectedApplicants.user": userId }],
+        $or: [
+          { "applicants.user": new mongoose.Types.ObjectId(requesterId) },
+          { members: new mongoose.Types.ObjectId(requesterId) },
+          {
+            "rejectedApplicants.user": new mongoose.Types.ObjectId(requesterId),
+          },
+        ],
       })
       .populate("creator", "name email")
       .populate("applicants.user", "name email")
       .populate("rejectedApplicants.user", "name email")
       .populate("members", "name email")
       .sort({ createdAt: -1 });
+
+    console.log("appliedTeams - Found teams:", teams.length);
 
     return res.status(200).json({ success: true, teams });
   } catch (error) {
@@ -274,7 +303,10 @@ export const acceptApplicant = async (req, res) => {
     )
       return res.status(400).json({ success: false, message: "Invalid id(s)" });
 
-    const team = await teamModel.findById(teamId);
+    // Populate the team with applicant user details to get their email
+    const team = await teamModel
+      .findById(teamId)
+      .populate("applicants.user", "name email");
     if (!team)
       return res
         .status(404)
@@ -285,12 +317,17 @@ export const acceptApplicant = async (req, res) => {
 
     // find applicant subdoc
     const applicantIndex = team.applicants.findIndex(
-      (a) => a.user && String(a.user) === String(applicantId)
+      (a) => a.user && String(a.user._id || a.user) === String(applicantId)
     );
     if (applicantIndex === -1)
       return res
         .status(404)
         .json({ success: false, message: "Applicant not found" });
+
+    // Get the applicant's details before removing from array
+    const applicant = team.applicants[applicantIndex];
+    const applicantEmail = applicant.user.email;
+    const applicantName = applicant.user.name;
 
     // check capacity
     if ((team.members?.length || 0) >= (team.maxMembers || 2)) {
@@ -309,6 +346,22 @@ export const acceptApplicant = async (req, res) => {
       team.isOpen = false;
 
     await team.save();
+
+    // Send email to the ACCEPTED APPLICANT (not the team creator)
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to: applicantEmail, // Fixed: was requesterId, should be applicantEmail
+      subject: "Congratulations! You've been accepted to the team",
+      text: `Hi ${applicantName},\n\nCongratulations! You have been accepted to join the team "${team.name}".\n\nWelcome aboard!\n\nBest regards,\nThe Team`,
+    };
+
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log("Acceptance email sent to:", applicantEmail); // Fixed: was requesterId
+    } catch (emailError) {
+      console.error("Failed to send acceptance email:", emailError);
+      // Don't fail the acceptance if email fails - just log it
+    }
 
     return res
       .status(200)
@@ -335,7 +388,10 @@ export const rejectApplicant = async (req, res) => {
     )
       return res.status(400).json({ success: false, message: "Invalid id(s)" });
 
-    const team = await teamModel.findById(teamId);
+    // Populate the team with applicant user details to get their email
+    const team = await teamModel
+      .findById(teamId)
+      .populate("applicants.user", "name email");
     if (!team)
       return res
         .status(404)
@@ -345,15 +401,19 @@ export const rejectApplicant = async (req, res) => {
       return res.status(403).json({ success: false, message: "Forbidden" });
 
     const applicantIndex = team.applicants.findIndex(
-      (a) => a.user && String(a.user) === String(applicantId)
+      (a) => a.user && String(a.user._id || a.user) === String(applicantId)
     );
     if (applicantIndex === -1)
       return res
         .status(404)
         .json({ success: false, message: "Applicant not found" });
 
-    // Move applicant to rejectedApplicants so they can still see they were rejected
+    // Get the applicant's details before moving to rejected
     const applicant = team.applicants[applicantIndex];
+    const applicantEmail = applicant.user.email;
+    const applicantName = applicant.user.name;
+
+    // Move applicant to rejectedApplicants so they can still see they were rejected
     team.rejectedApplicants.push({
       user: applicant.user,
       linkedin: applicant.linkedin,
@@ -365,6 +425,22 @@ export const rejectApplicant = async (req, res) => {
     team.applicants.splice(applicantIndex, 1);
 
     await team.save();
+
+    // Send rejection email
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to: applicantEmail,
+      subject: "Update on your team application",
+      text: `Hi ${applicantName},\n\nThank you for your interest in joining the team "${team.name}". After careful consideration, we have decided to move forward with other candidates at this time.\n\nWe appreciate the time you took to apply and encourage you to apply for other opportunities.\n\nBest regards,\nThe Team`,
+    };
+
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log("Rejection email sent to:", applicantEmail);
+    } catch (emailError) {
+      console.error("Failed to send rejection email:", emailError);
+      // Don't fail the rejection if email fails - just log it
+    }
 
     return res
       .status(200)

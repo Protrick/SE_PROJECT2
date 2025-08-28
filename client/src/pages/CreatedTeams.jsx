@@ -13,56 +13,50 @@ const CreatedTeams = () => {
     if (loading) return <div className="p-6 text-center">Loading...</div>;
 
     return (
-        <div className="p-6 max-w-4xl mx-auto pt-24">
-            <h2 className="text-2xl font-semibold mb-4">My Created Teams</h2>
-            {createdTeams.length === 0 ? (
-                <div className="text-center py-8">
-                    <p className="text-gray-500 mb-4">No teams created yet</p>
-                    <button
-                        onClick={() => navigate('/create-team')}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                        Create Your First Team
-                    </button>
+      <div className="app-bg">
+        <div className="container page">
+          <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div className="h1">My Created Teams</div>
+              <div className="text-muted">Manage teams you have created</div>
+            </div>
+            <div>
+              <button onClick={() => navigate('/create-team')} className="btn btn-accent">Create Team</button>
+            </div>
+          </div>
+
+          {createdTeams.length === 0 ? (
+            <div className="card" style={{ textAlign: 'center' }}>
+              <p className="text-muted" style={{ marginBottom: '1rem' }}>No teams created yet</p>
+              <button onClick={() => navigate('/create-team')} className="btn btn-accent">Create Your First Team</button>
+            </div>
+          ) : (
+            <div className="space-y-4" style={{ width: '100%' }}>
+              {createdTeams.map(team => (
+                <div key={team._id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <div className="h2" style={{ marginBottom: 6 }}>{team.name}</div>
+                    <div className="text-muted" style={{ marginBottom: 8 }}>{team.description}</div>
+                    <div className="text-muted" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                      <span>Domain: <strong style={{ fontWeight: 600, color: 'var(--muted)' }}>{team.domain}</strong></span>
+                      <span>Members: <strong style={{ fontWeight: 600, color: 'var(--muted)' }}>{team.members?.length || 0}/{team.maxMembers || 2}</strong></span>
+                      <span>Applicants: <strong style={{ fontWeight: 600, color: 'var(--muted)' }}>{team.applicants?.length || 0}</strong></span>
+                      <span className={`font-medium`} style={{ color: team.isOpen ? '#4ade80' : '#fb7185' }}>{team.isOpen ? 'Open' : 'Closed'}</span>
+                    </div>
+                  </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <button onClick={() => navigate(`/live-opening-creator-view/${team._id}`)} className="btn btn-primary">Manage Applications</button>
+                    <button onClick={() => navigate(`/team/${team._id}`)} className="btn">View Details</button>
+                  </div>
                 </div>
-            ) : (
-                <div className="space-y-4">
-                    {createdTeams.map(team => (
-                        <div key={team._id} className="border p-4 rounded-lg shadow-sm bg-white">
-                            <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                    <div className="font-semibold text-lg text-gray-800">{team.name}</div>
-                                    <div className="text-sm text-gray-600 mt-1">{team.description}</div>
-                                    <div className="flex gap-4 mt-2 text-sm text-gray-500">
-                                        <span>Domain: <span className="font-medium">{team.domain}</span></span>
-                                        <span>Members: <span className="font-medium">{team.members?.length || 0}/{team.maxMembers || 2}</span></span>
-                                        <span>Applicants: <span className="font-medium">{team.applicants?.length || 0}</span></span>
-                                        <span className={`font-medium ${team.isOpen ? 'text-green-600' : 'text-red-600'}`}>
-                                            {team.isOpen ? 'Open' : 'Closed'}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    <button
-                                        onClick={() => navigate(`/live-opening-creator-view/${team._id}`)}
-                                        className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-                                    >
-                                        Manage Applications
-                                    </button>
-                                    <button
-                                        onClick={() => navigate(`/team/${team._id}`)}
-                                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
-                                    >
-                                        View Details
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+              ))}
+            </div>
+          )}
+
         </div>
+      </div>
     )
+
 }
 
 export default CreatedTeams

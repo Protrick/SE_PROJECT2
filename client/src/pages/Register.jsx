@@ -29,14 +29,42 @@ const Register = () => {
   }
 
   return (
-    <div className='min-h-screen flex items-center justify-center'>
-      <form onSubmit={onSubmit} className='bg-white/10 backdrop-blur-md p-8 rounded-lg w-full max-w-md flex flex-col gap-4'>
-        <h2 className='text-2xl text-white'>Create an account</h2>
-        <input required value={name} onChange={e => setName(e.target.value)} placeholder='Name' className='p-2 rounded' />
-        <input required type='email' value={email} onChange={e => setEmail(e.target.value)} placeholder='Email' className='p-2 rounded' />
-        <input required type='password' value={password} onChange={e => setPassword(e.target.value)} placeholder='Password' className='p-2 rounded' />
-        <button type='submit' className='bg-amber-500 text-white py-2 rounded'>Register</button>
-      </form>
+    <div className="app-bg page">
+      <div className="container">
+        <div className="card" style={{ maxWidth: 520, margin: "0 auto" }}>
+          <h2 className="h1">Create an account</h2>
+          <p className="text-muted mt-2">Fill in the details to get started.</p>
+
+          <form onSubmit={onSubmit} className="col mt-4">
+            <input
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Name"
+              className="form-input"
+            />
+            <input
+              required
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              className="form-input"
+            />
+            <input
+              required
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className="form-input"
+            />
+            <div className="row" style={{ justifyContent: "flex-end", marginTop: 8 }}>
+              <button type="submit" className="btn btn-accent">Register</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   )
 }

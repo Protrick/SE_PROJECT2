@@ -44,25 +44,52 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className='min-h-screen flex items-center justify-center'>
-      <div className='bg-white/10 backdrop-blur-md p-8 rounded-lg w-full max-w-md'>
-        {step === 1 ? (
-          <form onSubmit={requestOtp} className='flex flex-col gap-4'>
-            <h2 className='text-xl'>Forgot password</h2>
-            <input type='email' placeholder='Email' required value={email} onChange={e => setEmail(e.target.value)} className='p-2 rounded outline-2' />
-            <button className='bg-blue-600 text-white py-2 rounded'>Send OTP</button>
-          </form>
-        ) : (
-          <form onSubmit={submitReset} className='flex flex-col gap-4'>
-            <h2 className='text-xl'>Reset password</h2>
-              <input type='text' placeholder='OTP' required value={otp} onChange={e => setOtp(e.target.value)} className='p-2 rounded outline-2' />
-              <input type='password' placeholder='New password' required value={newPassword} onChange={e => setNewPassword(e.target.value)} className='p-2 rounded outline-2' />
-            <div className='flex gap-2'>
-              <button className='bg-green-600 text-white py-2 px-4 rounded cursor-pointer hover:bg-green-700' type='submit'>Reset Password</button>
-                <button className='bg-gray-500 cursor-pointer hover:bg-gray-700 text-white py-2 px-4 rounded' type='button' onClick={() => setStep(1)}>Back</button>
-            </div>
-          </form>
-        )}
+    <div className="app-bg page">
+      <div className="container">
+        <div className="card" style={{ maxWidth: 520, margin: "0 auto" }}>
+          {step === 1 ? (
+            <form onSubmit={requestOtp} className="col">
+              <h2 className="h1">Forgot password</h2>
+              <p className="text-muted mt-2">Enter your account email to receive a reset code.</p>
+              <input
+                type="email"
+                placeholder="Email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="form-input"
+              />
+              <div className="row" style={{ justifyContent: "flex-end", marginTop: 8 }}>
+                <button className="btn btn-accent" type="submit">Send OTP</button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={submitReset} className="col">
+              <h2 className="h1">Reset password</h2>
+              <p className="text-muted mt-2">Enter the OTP you received and set a new password.</p>
+              <input
+                type="text"
+                placeholder="OTP"
+                required
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="form-input"
+              />
+              <input
+                type="password"
+                placeholder="New password"
+                required
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="form-input"
+              />
+              <div className="row" style={{ justifyContent: "space-between", marginTop: 8 }}>
+                <button className="btn btn-primary" type="button" onClick={() => setStep(1)}>Back</button>
+                <button className="btn btn-accent" type="submit">Reset Password</button>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   )

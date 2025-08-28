@@ -1,16 +1,26 @@
-import React, { createContext, useContext, useState } from 'react';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { AppContext } from './AppContext';
+import axios from "axios";
+import { createContext, useContext, useState } from "react";
+import { AppContext } from "./AppContext";
 
 export const TeamContext = createContext();
 
-export const TeamContextProvider = ({ children }) => {
+export const TeamProvider = ({ children }) => {
     const { backendUrl, userdata } = useContext(AppContext);
+
     const [createdTeams, setCreatedTeams] = useState([]);
     const [availableTeams, setAvailableTeams] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    const isValidUrl = (u) => {
+        try {
+            const x = new URL(u);
+            return x.protocol === "http:" || x.protocol === "https:";
+        } catch {
+            return false;
+        }
+    };
+
+    // Create team
     const createTeam = async ({ name, domain, description }) => {
         try {
             setLoading(true);
@@ -19,38 +29,38 @@ export const TeamContextProvider = ({ children }) => {
                 { name, domain, description },
                 { withCredentials: true }
             );
-            if (data.success) {
-                toast.success('Team created');
-                // update createdTeams
-                setCreatedTeams((s) => [data.team, ...s]);
-                return data.team;
+            if (data?.success && data.team) {
+                setCreatedTeams((prev) => [data.team, ...prev]);
+                return { success: true, team: data.team };
             }
-            toast.error(data.message || 'Failed to create team');
-            return null;
-        } catch (error) {
-            toast.error(error.response?.data?.message || error.message || 'Create team error');
-            return null;
+            return { success: false, message: data?.message || "Create failed" };
+        } catch (err) {
+            console.error("createTeam error:", err);
+            return {
+                success: false,
+                message: err?.response?.data?.message || err.message || "Server error",
+            };
         } finally {
             setLoading(false);
         }
     };
 
+    // Fetch teams I created
     const getCreatedTeams = async () => {
         try {
             setLoading(true);
-            const { data } = await axios.get(`${backendUrl}/api/team/created`, { withCredentials: true });
-            if (data.success) {
-                setCreatedTeams(data.teams || []);
-            } else {
-                toast.error(data.message || 'Failed to load created teams');
-            }
-        } catch (error) {
-            toast.error(error.response?.data?.message || error.message || 'Error loading created teams');
+            const { data } = await axios.get(`${backendUrl}/api/team/created`, {
+                withCredentials: true,
+            });
+            if (data?.success) setCreatedTeams(data.teams || []);
+        } catch (err) {
+            console.error("getCreatedTeams error:", err);
         } finally {
             setLoading(false);
         }
     };
 
+    // Fetch available teams for a domain (exclude my teams)
     const getAvailableTeams = async (domain) => {
         try {
             setLoading(true);
@@ -58,70 +68,81 @@ export const TeamContextProvider = ({ children }) => {
                 params: { domain },
                 withCredentials: true,
             });
-            if (data.success) {
-                // Defensive client-side filter: always remove teams created by the current user
+            if (data?.success) {
                 const teams = data.teams || [];
-                const filtered = userdata?._id ? teams.filter(t => t.creator?._id !== userdata._id) : teams;
+                const myId = userdata?._id ? String(userdata._id) : null;
+                const filtered = myId
+                    ? teams.filter(
+                        (t) => String(t.creator?._id || t.creator) !== myId
+                    )
+                    : teams;
                 setAvailableTeams(filtered);
-            } else {
-                toast.error(data.message || 'Failed to load available teams');
             }
-        } catch (error) {
-            toast.error(error.response?.data?.message || error.message || 'Error loading available teams');
+        } catch (err) {
+            console.error("getAvailableTeams error:", err);
         } finally {
             setLoading(false);
         }
     };
 
+    // Apply to a team
     const applyToTeam = async ({ teamId, linkedin, github, resume }) => {
         try {
+            if (!teamId) throw new Error("teamId required");
+            if (!linkedin || !github || !resume)
+                throw new Error("All links are required");
+            if (![linkedin, github, resume].every(isValidUrl))
+                throw new Error("Invalid URL(s)");
             setLoading(true);
             const { data } = await axios.post(
                 `${backendUrl}/api/team/${teamId}/apply`,
                 { linkedin, github, resume },
                 { withCredentials: true }
             );
-            if (data.success) {
-                toast.success(data.message || 'Applied successfully');
-                return true;
-            }
-            toast.error(data.message || 'Apply failed');
-            return false;
-        } catch (error) {
-            toast.error(error.response?.data?.message || error.message || 'Error applying to team');
-            return false;
+            if (data?.success) return { success: true };
+            return { success: false, message: data?.message || "Apply failed" };
+        } catch (err) {
+            console.error("applyToTeam error:", err);
+            return {
+                success: false,
+                message: err?.response?.data?.message || err.message || "Server error",
+            };
         } finally {
             setLoading(false);
         }
     };
 
+    // Get one team by id
     const getTeamById = async (teamId) => {
         try {
             setLoading(true);
-            const { data } = await axios.get(`${backendUrl}/api/team/${teamId}`, { withCredentials: true });
-            if (data.success) return data.team;
-            toast.error(data.message || 'Failed to load team');
+            const { data } = await axios.get(`${backendUrl}/api/team/${teamId}`, {
+                withCredentials: true,
+            });
+            if (data?.success) return data.team;
             return null;
-        } catch (error) {
-            toast.error(error.response?.data?.message || error.message || 'Error loading team');
+        } catch (err) {
+            console.error("getTeamById error:", err);
             return null;
         } finally {
             setLoading(false);
         }
     };
 
+    // Creator actions
     const acceptApplicant = async (teamId, applicantId) => {
         try {
+            if (!teamId || !applicantId)
+                throw new Error("teamId and applicantId required");
             setLoading(true);
-            const { data } = await axios.post(`${backendUrl}/api/team/${teamId}/applicants/${applicantId}/accept`, {}, { withCredentials: true });
-            if (data.success) {
-                toast.success(data.message || 'Applicant accepted');
-                return true;
-            }
-            toast.error(data.message || 'Accept failed');
-            return false;
-        } catch (error) {
-            toast.error(error.response?.data?.message || error.message || 'Error accepting applicant');
+            const { data } = await axios.post(
+                `${backendUrl}/api/team/${teamId}/accept/${applicantId}`,
+                {},
+                { withCredentials: true }
+            );
+            return !!data?.success;
+        } catch (err) {
+            console.error("acceptApplicant error:", err);
             return false;
         } finally {
             setLoading(false);
@@ -130,16 +151,17 @@ export const TeamContextProvider = ({ children }) => {
 
     const rejectApplicant = async (teamId, applicantId) => {
         try {
+            if (!teamId || !applicantId)
+                throw new Error("teamId and applicantId required");
             setLoading(true);
-            const { data } = await axios.post(`${backendUrl}/api/team/${teamId}/applicants/${applicantId}/reject`, {}, { withCredentials: true });
-            if (data.success) {
-                toast.success(data.message || 'Applicant rejected');
-                return true;
-            }
-            toast.error(data.message || 'Reject failed');
-            return false;
-        } catch (error) {
-            toast.error(error.response?.data?.message || error.message || 'Error rejecting applicant');
+            const { data } = await axios.post(
+                `${backendUrl}/api/team/${teamId}/reject/${applicantId}`,
+                {},
+                { withCredentials: true }
+            );
+            return !!data?.success;
+        } catch (err) {
+            console.error("rejectApplicant error:", err);
             return false;
         } finally {
             setLoading(false);
@@ -148,51 +170,43 @@ export const TeamContextProvider = ({ children }) => {
 
     const withdrawApplication = async (teamId, applicantId) => {
         try {
+            if (!teamId || !applicantId)
+                throw new Error("teamId and applicantId required");
             setLoading(true);
-            const { data } = await axios.post(`${backendUrl}/api/team/${teamId}/applicants/${applicantId}/withdraw`, {}, { withCredentials: true });
-            if (data.success) {
-                toast.success(data.message || 'Application withdrawn');
-                return true;
-            }
-            toast.error(data.message || 'Withdraw failed');
-            return false;
-        } catch (error) {
-            toast.error(error.response?.data?.message || error.message || 'Error withdrawing application');
+            const { data } = await axios.post(
+                `${backendUrl}/api/team/${teamId}/withdraw/${applicantId}`,
+                {},
+                { withCredentials: true }
+            );
+            return !!data?.success;
+        } catch (err) {
+            console.error("withdrawApplication error:", err);
             return false;
         } finally {
             setLoading(false);
         }
     };
 
-    const getAppliedTeams = async () => {
-        try {
-            setLoading(true);
-            const { data } = await axios.get(`${backendUrl}/api/team/applied`, { withCredentials: true });
-            if (data.success) return data.teams || [];
-            toast.error(data.message || 'Failed to load applied teams');
-            return [];
-        } catch (error) {
-            toast.error(error.response?.data?.message || error.message || 'Error loading applied teams');
-            return [];
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const value = {
-        createdTeams,
-        availableTeams,
-        loading,
-        createTeam,
-        getCreatedTeams,
-        getAvailableTeams,
-        applyToTeam,
-        getTeamById,
-        acceptApplicant,
-        rejectApplicant,
-        withdrawApplication,
-        getAppliedTeams,
-    };
-
-    return <TeamContext.Provider value={value}>{children}</TeamContext.Provider>;
+    return (
+        <TeamContext.Provider
+            value={{
+                loading,
+                createdTeams,
+                availableTeams,
+                createTeam,
+                getCreatedTeams,
+                getAvailableTeams,
+                applyToTeam,
+                getTeamById,
+                acceptApplicant,
+                rejectApplicant,
+                withdrawApplication,
+            }}
+        >
+            {children}
+        </TeamContext.Provider>
+    );
 };
+
+export const TeamContextProvider = TeamProvider;
+export default TeamProvider;

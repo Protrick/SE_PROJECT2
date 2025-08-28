@@ -15,20 +15,48 @@ const CreateTeam = () => {
   }
 
   return (
-    <div className='flex items-center justify-center min-h-screen'>
-      <div className="p-6 max-w-lg mx-auto">
-        <h2 className="text-2xl font-semibold mb-4">Create Team</h2>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="Team name" className="w-full p-2 border rounded" required />
-          <select value={domain} onChange={e => setDomain(e.target.value)} className="w-full p-2 border rounded">
-            <option value="frontend">Frontend</option>
-            <option value="backend">Backend</option>
-            <option value="devops">DevOps</option>
-            <option value="ml">Machine Learning</option>
-          </select>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" className="w-full p-2 border rounded" />
-          <button disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded">{loading ? 'Creating...' : 'Create'}</button>
-        </form>
+    <div className="app-bg">
+      <div className="container page" style={{ alignItems: 'center' }}>
+        <div className="card" style={{ maxWidth: 720, width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div>
+              <div className="h1">Create Team</div>
+              <div className="text-muted">Start a new team and invite collaborators</div>
+            </div>
+            <div>
+              <button onClick={() => { setName(''); setDescription(''); setDomain('frontend'); }} className="btn">Reset</button>
+            </div>
+          </div>
+
+          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Team name"
+              className="form-input"
+              required
+            />
+            <select value={domain} onChange={e => setDomain(e.target.value)} className="form-input">
+              <option value="frontend">Frontend</option>
+              <option value="backend">Backend</option>
+              <option value="devops">DevOps</option>
+              <option value="ml">Machine Learning</option>
+            </select>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Description"
+              className="form-input"
+              rows={4}
+            />
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button type="button" onClick={() => { setName(''); setDescription(''); setDomain('frontend'); }} className="btn">Cancel</button>
+              <button disabled={loading} type="submit" className="btn btn-accent">
+                {loading ? 'Creating...' : 'Create Team'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   )
