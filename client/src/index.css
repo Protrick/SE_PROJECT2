@@ -1,14 +1,18 @@
 
 @import "tailwindcss";
 
-/* Calm blue gradient used across the app */
-:root {
-  --app-gradient: linear-gradient(
-    180deg,
-    #0369a1 0%,
-    #60a5fa 40%,
-    #bae6fd 100%
-  );
+/* Design tokens */
+:root{
+  --gradient-top: #000000;
+  --gradient-mid: #06182d;
+  --gradient-bottom: #0a374f;
+  --app-gradient: linear-gradient(180deg,var(--gradient-top) 0%,var(--gradient-mid) 40%,var(--gradient-bottom) 100%);
+  --glass-bg: rgba(255,255,255,0.06);
+  --glass-border: rgba(255,255,255,0.10);
+  --muted: rgba(255,255,255,0.85);
+  --muted-2: rgba(255,255,255,0.65);
+  --card-shadow: 0 6px 18px rgba(5,20,40,0.35);
+  --radius: 12px;
 }
 
 /* Prevent horizontal overflow only */
@@ -17,6 +21,7 @@ body,
 #root {
   overflow-x: hidden;
   min-height: 100%;
+  color: white;
 }
 
 body,

@@ -39,14 +39,14 @@ const JoinTeam = () => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto pt-24">
-      <h2 className="text-2xl font-semibold mb-6">Join a Team</h2>
+      <h2 className="flex justify-center text-2xl font-semibold mb-6">Join a Team</h2>
 
       <div className="mb-6">
-        <label className="block mb-2 font-medium">Select Domain</label>
+        <label className="flex justify-center mb-2 font-medium">Select Domain</label>
         <select
           value={domain}
           onChange={e => setDomain(e.target.value)}
-          className="p-3 border rounded-lg w-64 bg-white"
+          className="flex justify-center p-3 border rounded-lg w-64 bg-white text-black"
         >
           <option value="frontend">Frontend Development</option>
           <option value="backend">Backend Development</option>

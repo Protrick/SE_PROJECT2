@@ -23,7 +23,6 @@ const Navbar = () => {
         >
           {[
             ["/", "Home"],
-            ["/about", "About"],
             ["/join-team", "Join Team"],
             ["/create-team", "Create Team"],
             ["/created-teams", "My Teams"],

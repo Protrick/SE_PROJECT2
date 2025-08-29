@@ -16,7 +16,7 @@ const CreateTeam = () => {
 
   return (
     <div className='flex items-center justify-center min-h-screen'>
-      <div className="p-6 max-w-lg mx-auto">
+      <div className="p-6 max-w-lg mx-auto backdrop-blur-3xl">
         <h2 className="text-2xl font-semibold mb-4">Create Team</h2>
         <form onSubmit={onSubmit} className="space-y-4">
           <input value={name} onChange={e => setName(e.target.value)} placeholder="Team name" className="w-full p-2 border rounded" required />

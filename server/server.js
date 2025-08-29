@@ -18,7 +18,7 @@ console.log("Allowed frontend origin:", allowedOrigin);
 
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin:allowedOrigin,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })

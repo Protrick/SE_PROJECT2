@@ -4,96 +4,79 @@ import { AppContext } from '../context/AppContext'
 import { useNavigate } from 'react-router-dom'
 
 const AppliedTeams = () => {
-    const { getAppliedTeams, loading } = useContext(TeamContext);
-    const { userdata } = useContext(AppContext);
-    const [teams, setTeams] = useState([]);
-    const navigate = useNavigate();
+  const { getAppliedTeams, loading } = useContext(TeamContext);
+  const { userdata } = useContext(AppContext);
+  const [teams, setTeams] = useState([]);
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        (async () => {
-            const t = await getAppliedTeams();
-            setTeams(t);
-        })();
-    }, []);
+  useEffect(() => {
+    (async () => {
+      const t = await getAppliedTeams();
+      setTeams(t);
+    })();
+  }, []);
 
-    if (loading) return <div className="p-6 text-center">Loading...</div>;
+  if (loading) return <div className="p-6 text-center">Loading...</div>;
 
-    const getApplicationStatus = (team) => {
-        if (!userdata) return 'Unknown';
+  const getApplicationStatus = (team) => {
+    if (!userdata) return 'Unknown';
 
-        // Check if user is already a member
-        const isMember = team.members?.some(member =>
-            (typeof member === 'string' ? member : member._id) === userdata._id
-        );
+    // Check if user is already a member
+    const isMember = team.members?.some(member =>
+      (typeof member === 'string' ? member : member._id) === userdata._id
+    );
 
-        if (isMember) return 'Accepted';
+    if (isMember) return 'Accepted';
 
-        // Check if user has applied
-        const hasApplied = team.applicants?.some(applicant =>
-            (typeof applicant.user === 'string' ? applicant.user : applicant.user._id) === userdata._id
-        );
+    // Check if user has applied
+    const hasApplied = team.applicants?.some(applicant =>
+      (typeof applicant.user === 'string' ? applicant.user : applicant.user._id) === userdata._id
+    );
 
-        if (hasApplied) return 'Pending';
+    if (hasApplied) return 'Pending';
 
-        return 'Unknown';
-    };
+    return 'Unknown';
+  };
 
-    return (
-        <div className="p-6 max-w-4xl mx-auto pt-24">
-            <h2 className="text-2xl font-semibold mb-4">Teams I've Applied To</h2>
-            {teams.length === 0 ? (
-                <div className="text-center py-8">
-                    <p className="text-gray-500 mb-4">No applications yet</p>
-                    <button
-                        onClick={() => navigate('/join-team')}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                        Browse Teams to Join
-                    </button>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {teams.map(team => {
-                        const status = getApplicationStatus(team);
-                        return (
-                            <div key={team._id} className="border p-4 rounded-lg shadow-sm bg-white">
-                                <div className="flex justify-between items-start">
-                                    <div className="flex-1">
-                                        <div className="font-semibold text-lg text-gray-800">{team.name}</div>
-                                        <div className="text-sm text-gray-600 mt-1">{team.description}</div>
-                                        <div className="flex gap-4 mt-2 text-sm text-gray-500">
-                                            <span>Domain: <span className="font-medium">{team.domain}</span></span>
-                                            <span>Creator: <span className="font-medium">{team.creator?.name || 'Unknown'}</span></span>
-                                            <span>Members: <span className="font-medium">{team.members?.length || 0}/{team.maxMembers || 2}</span></span>
-                                            <span className={`font-medium ${status === 'Accepted' ? 'text-green-600' :
-                                                    status === 'Pending' ? 'text-yellow-600' : 'text-gray-600'
-                                                }`}>
-                                                Status: {status}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col gap-2">
-                                        <button
-                                            onClick={() => navigate(`/live-opening-joining-view?teamId=${team._id}`)}
-                                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-                                        >
-                                            View Application
-                                        </button>
-                                        <button
-                                            onClick={() => navigate(`/team/${team._id}`)}
-                                            className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
-                                        >
-                                            View Details
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
+  return (
+    <div className="min-h-screen mt-15">
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-white">My Applications</h1>
+            <p className="mt-2 text-sm text-white">Application status updates</p>
+          </div>
+
+          <div className="bg-gray-50 overflow-hidden shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6 text-center">
+              <svg
+                className="mx-auto h-12 w-12 text-indigo-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+
+              <h3 className="mt-4 text-lg font-medium text-gray-900">Check Your Email</h3>
+              <p className="mt-2 text-sm text-gray-500">
+                Please check the email address you provided during application for updates about your application status.
+              </p>
+              <p className="mt-2 text-sm text-gray-500">
+                Team creators will contact you directly if there is any update.
+              </p>
+            </div>
+          </div>
         </div>
-    )
+      </div>
+    </div>
+  )
 }
 
 export default AppliedTeams
