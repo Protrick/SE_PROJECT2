@@ -11,13 +11,10 @@ const Home = () => {
   }, [userdata]);
 
   return (
-    <div className="app-bg page">
-      <div className="container">
-        <div className="card" style={{ textAlign: 'center' }}>
-          <h1 className="h1">{userdata ? `Welcome, ${userdata.name}` : "Welcome to SE_PROJECT2"}</h1>
-          <p className="text-muted mt-2">{userdata ? "Here's your dashboard overview." : "Join or create teams to collaborate on projects."}</p>
-        </div>
-      </div>
+    <div className="min-h-screen pt-20 flex items-center justify-center">
+      <h1 className="text-black text-center text-3xl">
+        {userdata ? `Welcome, ${userdata.name}` : "Welcome to the Home Page"}
+      </h1>
     </div>
   )
 }

@@ -52,77 +52,45 @@ const Login = () => {
   }
 
   return (
-    <div className="app-bg page">
-      <div className="container">
-        <div className="card" style={{ maxWidth: 520, margin: "0 auto" }}>
-          <h2 className="h1">{state === "signup" ? "Create account" : "Welcome back"}</h2>
-          <p className="text-muted mt-2">
-            {state === "signup"
-              ? "Fill in the details to create an account."
-              : "Enter your credentials to continue."}
-          </p>
 
-          <form className="col mt-4" onSubmit={onSubmitHandler}>
-            {state === "signup" ? (
-              <>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="Name"
-                  required
-                  onChange={(e) => setName(e.target.value)}
-                  value={name}
-                />
-                <input
-                  type="email"
-                  className="form-input"
-                  placeholder="Email"
-                  required
-                  onChange={(e) => setEmail(e.target.value)}
-                  value={email}
-                />
-                <input
-                  type="password"
-                  className="form-input"
-                  placeholder="Password"
-                  required
-                  onChange={(e) => setPassword(e.target.value)}
-                  value={password}
-                />
-                <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-                  <button type="submit" className="btn btn-accent">Create Account</button>
-                  <button type="button" className="btn btn-primary" onClick={() => setstate("signin")}>Sign in</button>
-                </div>
-              </>
-            ) : (
-              <>
-                <input
-                  type="email"
-                  className="form-input"
-                  placeholder="Email"
-                  required
-                  onChange={(e) => setEmail(e.target.value)}
-                  value={email}
-                />
-                <input
-                  type="password"
-                  className="form-input"
-                  placeholder="Password"
-                  required
-                  onChange={(e) => setPassword(e.target.value)}
-                  value={password}
-                />
-                <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-                  <p className="text-muted" style={{ cursor: "pointer" }} onClick={() => navigate('/reset-password')}>Forgot password?</p>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <button type="button" className="btn btn-primary" onClick={() => setstate("signup")}>Sign up</button>
-                    <button type="submit" className="btn btn-accent">Login</button>
-                  </div>
-                </div>
-              </>
-            )}
-          </form>
-        </div>
+    <div className='flex items-center justify-center min-h-screen'>
+      <div className='flex flex-col p-8 gap-y-4 justify-center items-center w-auto h-auto  rounded-lg shadow-lg backdrop-blur-lg'>
+        <h1>{state === "signup" ? "create account" : "login"}</h1>
+        <p>{state === "signup" ? "Please fill in the details to create an account." : "Please enter your credentials to log in."}</p>
+        <form className='flex flex-col gap-y-4'
+          onSubmit={onSubmitHandler}>
+          {state === "signup" ? (
+            <>
+              <input type="text" className='outline-none border-b-2 border-gray-300 focus:border-amber-500' placeholder="Name" required onChange={e => setName(e.target.value)} value={name} />
+              <input type="email" className='outline-none border-b-2 border-gray-300 focus:border-amber-500' placeholder="Email" required onChange={e => setEmail(e.target.value)} value={email} />
+              <input type="password" className='outline-none border-b-2 border-gray-300 focus:border-amber-500' placeholder="Password" required onChange={e => setPassword(e.target.value)} value={password} />
+              <button type="submit" className='bg-amber-500 text-white py-2 px-4 rounded-lg'  >Create Account</button>
+              <p>already have an account?<span className='underline cursor-pointer text-blue-600' onClick={() => setstate("signin")}>Sign in</span></p>
+            </>
+          ) : (
+            <>
+              <input
+                type="email"
+                className='outline-none border-b-2 border-gray-300 focus:border-amber-500'
+                placeholder="Email"
+                required
+                onChange={e => setEmail(e.target.value)}
+                value={email}
+              />
+              <input
+                type="password"
+                className='outline-none border-b-2 border-gray-300 focus:border-amber-500'
+                placeholder="Password"
+                required
+                onChange={e => setPassword(e.target.value)}
+                value={password}
+              />
+              <p className='cursor-pointer underline text-blue-600' onClick={() => navigate('/reset-password')}>forgot password?</p>
+              <button type="submit" className='bg-amber-500 text-white py-2 px-4 rounded-lg'>Login</button>
+              <p>Don't have an account? <span className='underline cursor-pointer text-blue-600' onClick={() => setstate("signup")}>Sign up</span></p>
+            </>
+          )}
+        </form>
       </div>
     </div>
   )

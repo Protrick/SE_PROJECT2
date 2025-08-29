@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import usermodel from "../models/user.model.js";
 import dotenv from "dotenv";
-import { transporter } from "../config/nodemailer.js"; // Fixed: use named import
+import transporter from "../config/nodemailer.js";
 dotenv.config();
 
 export const register = async (req, res) => {
@@ -39,37 +39,16 @@ export const register = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    // Send welcome email using the imported sendEmail function
-    try {
-      const welcomeSubject = "Welcome to Team Formation Platform!";
-      const welcomeHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; color: white;">
-            <h1 style="margin: 0; font-size: 28px;">Welcome! 🎉</h1>
-          </div>
-          <div style="padding: 30px; background-color: #f8f9fa;">
-            <h2 style="color: #333; margin-top: 0;">Hello ${name}!</h2>
-            <p style="font-size: 16px; line-height: 1.6; color: #555;">
-              Thank you for registering with our Team Formation Platform. Your account has been created successfully.
-            </p>
-            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
-              <h3 style="margin-top: 0; color: #667eea;">Your Account Details:</h3>
-              <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
-              <p style="margin: 5px 0;"><strong>Name:</strong> ${name}</p>
-            </div>
-            <p style="font-size: 16px; line-height: 1.6; color: #555;">
-              You can now start creating teams or join existing ones. Explore the platform and find your perfect team match!
-            </p>
-          </div>
-        </div>
-      `;
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to: email,
+      subject: "Welcome to Our App!",
+      text: "Hello! Thanks for registering with us. with your email: " + email,
+    };
 
-      await sendEmail(email, welcomeSubject, welcomeHtml);
-    } catch (emailError) {
-      console.error("Failed to send welcome email:", emailError);
-      // Don't fail the registration if email fails
-    }
-
+    await transporter.sendMail(mailOptions);
+    //sending welcome email
+    // await SENDMAIL(email);
     return res.json({ success: true, message: "User created successfully" });
   } catch (error) {
     res.json({ success: false, message: error.message });
@@ -125,7 +104,7 @@ export const logout = async (req, res) => {
   }
 };
 
-// send verification OTP to the user's email
+// send verification OTP to  the user's email
 export const sendVerifyOtp = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -149,37 +128,14 @@ export const sendVerifyOtp = async (req, res) => {
     user.verifyOtp = otp;
     user.verifyOtpExpireAt = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to: toEmail,
+      subject: "Account verification otp",
+      text: `Hello! Thanks for registering with us. Your OTP is ${otp}`,
+    };
 
-    // Send OTP email using the imported sendEmail function
-    try {
-      const otpSubject = "Account Verification OTP";
-      const otpHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; color: white;">
-            <h1 style="margin: 0; font-size: 28px;">Verify Your Account</h1>
-          </div>
-          <div style="padding: 30px; background-color: #f8f9fa;">
-            <h2 style="color: #333; margin-top: 0;">Hello ${user.name}!</h2>
-            <p style="font-size: 16px; line-height: 1.6; color: #555;">
-              Please use the following OTP to verify your account:
-            </p>
-            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; border: 2px solid #667eea;">
-              <h2 style="margin: 0; color: #667eea; font-size: 32px; letter-spacing: 5px;">${otp}</h2>
-            </div>
-            <p style="font-size: 16px; line-height: 1.6; color: #555;">
-              This OTP will expire in 15 minutes. Please do not share this code with anyone.
-            </p>
-          </div>
-        </div>
-      `;
-
-      await sendEmail(user.email, otpSubject, otpHtml);
-    } catch (emailError) {
-      console.error("Failed to send OTP email:", emailError);
-      return res
-        .status(500)
-        .json({ success: false, message: "Failed to send OTP email" });
-    }
+    await transporter.sendMail(mailOptions);
 
     return res.json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
@@ -192,7 +148,7 @@ export const sendVerifyOtp = async (req, res) => {
 
 export const verifyEmail = async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.id; // ✅ Get from token, not from req.body
     const { otp } = req.body;
 
     if (!userId || !otp) {
@@ -253,36 +209,14 @@ export const sendPasswordResetOtp = async (req, res) => {
     user.resetOtpExpireAt = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
 
-    // Send password reset OTP email
-    try {
-      const resetSubject = "Password Reset OTP";
-      const resetHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); padding: 30px; text-align: center; color: white;">
-            <h1 style="margin: 0; font-size: 28px;">Password Reset</h1>
-          </div>
-          <div style="padding: 30px; background-color: #f8f9fa;">
-            <h2 style="color: #333; margin-top: 0;">Hello ${user.name}!</h2>
-            <p style="font-size: 16px; line-height: 1.6; color: #555;">
-              You requested to reset your password. Please use the following OTP:
-            </p>
-            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; border: 2px solid #ff6b6b;">
-              <h2 style="margin: 0; color: #ff6b6b; font-size: 32px; letter-spacing: 5px;">${otp}</h2>
-            </div>
-            <p style="font-size: 16px; line-height: 1.6; color: #555;">
-              This OTP will expire in 15 minutes. If you didn't request this, please ignore this email.
-            </p>
-          </div>
-        </div>
-      `;
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to: email,
+      subject: "Password Reset OTP",
+      text: `Your password reset OTP is ${otp}`,
+    };
 
-      await sendEmail(email, resetSubject, resetHtml);
-    } catch (emailError) {
-      console.error("Failed to send reset OTP email:", emailError);
-      return res
-        .status(500)
-        .json({ success: false, message: "Failed to send OTP email" });
-    }
+    await transporter.sendMail(mailOptions);
 
     return res.json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
