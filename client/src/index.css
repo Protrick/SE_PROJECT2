@@ -1,18 +1,9 @@
-
 @import "tailwindcss";
 
-/* Design tokens */
-:root{
-  --gradient-top: #000000;
-  --gradient-mid: #06182d;
-  --gradient-bottom: #0a374f;
-  --app-gradient: linear-gradient(180deg,var(--gradient-top) 0%,var(--gradient-mid) 40%,var(--gradient-bottom) 100%);
-  --glass-bg: rgba(255,255,255,0.06);
-  --glass-border: rgba(255,255,255,0.10);
-  --muted: rgba(255,255,255,0.85);
-  --muted-2: rgba(255,255,255,0.65);
-  --card-shadow: 0 6px 18px rgba(5,20,40,0.35);
-  --radius: 12px;
+/* Apply background image from public/ globally */
+:root {
+  /* keep design tokens here if needed */
+  --app-bg-image: url("/BG.jpg"); /* public folder asset — leading slash required for Vite */
 }
 
 /* Prevent horizontal overflow only */
@@ -24,14 +15,21 @@ body,
   color: white;
 }
 
+/* Global background applied to body/root from public folder */
 body,
 #root {
-  background: var(--app-gradient);
+  background-image: var(--app-bg-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   background-attachment: fixed;
+  /* fallback gradient/color if image missing */
+  background-color: #06182d;
 }
 
 /* Utility class to apply the gradient to any top-level container */
 .app-bg {
-  background: var(--app-gradient);
   min-height: 100vh;
+  background-size: cover;
+  background-position: center;
 }
