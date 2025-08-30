@@ -41,7 +41,7 @@ const Home = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
           >
-            {userdata ? `Welcome, ${userdata.name}` : "Welcome to SE_PROJECT2"}
+            {userdata ? `Welcome, ${userdata.name}` : "Welcome USER"}
           </motion.h1>
 
           <motion.p
