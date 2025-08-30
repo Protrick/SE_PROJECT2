@@ -22,14 +22,17 @@ const JoinTeam = () => {
       return;
     }
 
-    const success = await applyToTeam({ teamId, linkedin, github, resume });
-    if (success) {
+    const result = await applyToTeam({ teamId, linkedin, github, resume });
+    if (result.success) {
+      alert('Application submitted successfully!');
       setLinkedin('');
       setGithub('');
       setResume('');
       setSelectedTeam(null);
       // refresh list to remove applied team
       getAvailableTeams(domain);
+    } else {
+      alert(result.message || 'Failed to submit application');
     }
   }
 
@@ -101,7 +104,7 @@ const JoinTeam = () => {
                       value={linkedin}
                       onChange={e => setLinkedin(e.target.value)}
                       placeholder="https://linkedin.com/in/your-profile"
-                      className={`w-full p-3 border rounded-lg ${!linkedin || validateUrl(linkedin) ? 'border-gray-300' : 'border-red-300'}`}
+                      className={`w-full p-3 text-black border rounded-lg ${!linkedin || validateUrl(linkedin) ? 'border-gray-300' : 'border-red-300'}`}
                       required
                     />
                     {linkedin && !validateUrl(linkedin) && (
@@ -115,7 +118,7 @@ const JoinTeam = () => {
                       value={github}
                       onChange={e => setGithub(e.target.value)}
                       placeholder="https://github.com/your-username"
-                      className={`w-full p-3 border rounded-lg ${!github || validateUrl(github) ? 'border-gray-300' : 'border-red-300'}`}
+                      className={`w-full p-3 text-black border rounded-lg ${!github || validateUrl(github) ? 'border-gray-300' : 'border-red-300'}`}
                       required
                     />
                     {github && !validateUrl(github) && (
@@ -129,7 +132,7 @@ const JoinTeam = () => {
                       value={resume}
                       onChange={e => setResume(e.target.value)}
                       placeholder="https://drive.google.com/your-resume or any public URL"
-                      className={`w-full p-3 border rounded-lg ${!resume || validateUrl(resume) ? 'border-gray-300' : 'border-red-300'}`}
+                      className={`w-full p-3 text-black border rounded-lg ${!resume || validateUrl(resume) ? 'border-gray-300' : 'border-red-300'}`}
                       required
                     />
                     {resume && !validateUrl(resume) && (

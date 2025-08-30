@@ -103,6 +103,8 @@ export const TeamProvider = ({ children }) => {
             return { success: false, message: data?.message || "Apply failed" };
         } catch (err) {
             console.error("applyToTeam error:", err);
+            console.error("Error response data:", err?.response?.data);
+            console.error("Error status:", err?.response?.status);
             return {
                 success: false,
                 message: err?.response?.data?.message || err.message || "Server error",
@@ -136,7 +138,7 @@ export const TeamProvider = ({ children }) => {
                 throw new Error("teamId and applicantId required");
             setLoading(true);
             const { data } = await axios.post(
-                `${backendUrl}/api/team/${teamId}/accept/${applicantId}`,
+                `${backendUrl}/api/team/${teamId}/applicants/${applicantId}/accept`,
                 {},
                 { withCredentials: true }
             );
@@ -155,7 +157,7 @@ export const TeamProvider = ({ children }) => {
                 throw new Error("teamId and applicantId required");
             setLoading(true);
             const { data } = await axios.post(
-                `${backendUrl}/api/team/${teamId}/reject/${applicantId}`,
+                `${backendUrl}/api/team/${teamId}/applicants/${applicantId}/reject`,
                 {},
                 { withCredentials: true }
             );
@@ -174,7 +176,7 @@ export const TeamProvider = ({ children }) => {
                 throw new Error("teamId and applicantId required");
             setLoading(true);
             const { data } = await axios.post(
-                `${backendUrl}/api/team/${teamId}/withdraw/${applicantId}`,
+                `${backendUrl}/api/team/${teamId}/applicants/${applicantId}/withdraw`,
                 {},
                 { withCredentials: true }
             );
@@ -182,6 +184,25 @@ export const TeamProvider = ({ children }) => {
         } catch (err) {
             console.error("withdrawApplication error:", err);
             return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Get teams where user has applied/is member
+    const getAppliedTeams = async () => {
+        try {
+            setLoading(true);
+            const { data } = await axios.get(`${backendUrl}/api/team/applied`, {
+                withCredentials: true,
+            });
+            if (data?.success) {
+                return data.teams || [];
+            }
+            return [];
+        } catch (err) {
+            console.error("getAppliedTeams error:", err);
+            return [];
         } finally {
             setLoading(false);
         }
@@ -196,6 +217,7 @@ export const TeamProvider = ({ children }) => {
                 createTeam,
                 getCreatedTeams,
                 getAvailableTeams,
+                getAppliedTeams,
                 applyToTeam,
                 getTeamById,
                 acceptApplicant,

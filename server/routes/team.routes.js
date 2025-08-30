@@ -19,14 +19,14 @@ const router = express.Router();
 router.post("/", userAuth, createTeam);
 // list teams created by the authenticated user
 router.get("/created", userAuth, showCreatedTeams);
- // list available teams (optionally filtered by domain via ?domain=...)
+// list available teams (optionally filtered by domain via ?domain=...)
 router.get("/available", optionalUserAuth, showAvailableTeams);
+// list teams the user has applied to
+router.get("/applied", userAuth, appliedTeams);
 // Apply to a team (require auth and links)
 router.post("/:teamId/apply", userAuth, applyToTeam);
 // get team by id
 router.get("/:teamId", userAuth, getTeamById);
-// list teams the user has applied to
-router.get("/applied", userAuth, appliedTeams);
 // Creator accepts/rejects applicant
 router.post(
   "/:teamId/applicants/:applicantId/accept",

@@ -11,7 +11,9 @@ const Navbar = () => {
   return (
     <>
       <motion.div initial={{ y: -80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, ease: 'easeOut' }} className="fixed top-0 left-0 w-full z-50 py-4 flex justify-between items-center bg-white/10 text-white px-12 backdrop-blur-md">
-        <div>LOGO</div>
+        <div className="flex items-center gap-3 p-0">
+          <img src="/LOGO.png" alt="Logo" className="h-10 w-auto p-0  " />
+        </div>
         <motion.ul
           className="flex justify-center items-center gap-4"
           initial="hidden"

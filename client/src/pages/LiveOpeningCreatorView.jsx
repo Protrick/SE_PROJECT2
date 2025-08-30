@@ -65,7 +65,7 @@ const LiveOpeningCreatorView = () => {
     );
   }
 
-  const pendingApplicants = team.applicants?.filter(app => app.status !== 'accepted' && app.status !== 'rejected') || [];
+  const pendingApplicants = team.applicants || [];
   const acceptedCount = team.members?.length || 0;
   const isTeamFull = acceptedCount >= (team.maxMembers || 2);
 

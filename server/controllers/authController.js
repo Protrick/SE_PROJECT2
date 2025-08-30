@@ -130,7 +130,7 @@ export const sendVerifyOtp = async (req, res) => {
     await user.save();
     const mailOptions = {
       from: process.env.SENDER_EMAIL,
-      to: toEmail,
+      to: user.email,
       subject: "Account verification otp",
       text: `Hello! Thanks for registering with us. Your OTP is ${otp}`,
     };
