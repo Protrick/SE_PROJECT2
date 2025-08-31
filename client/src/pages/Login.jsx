@@ -23,10 +23,14 @@ const Login = () => {
           password
         }, { withCredentials: true });
         if (data.success) {
-          setIsLoggedin(true);
-          await getUserData();
-          navigate('/');
-          toast(data.message || 'User created successfully');
+          console.log('Registration successful, fetching user data...');
+          const userData = await getUserData();
+          if (userData) {
+            navigate('/');
+            toast(data.message || 'User created successfully');
+          } else {
+            toast.error('Registration successful but failed to load user data');
+          }
         } else {
           toast.error(data.message);
         }
@@ -37,17 +41,20 @@ const Login = () => {
           password
         }, { withCredentials: true });
         if (data.success) {
-          setIsLoggedin(true);
-          await getUserData();
-          navigate('/');
-          toast(data.message || 'Logged in');
+          console.log('Login successful, fetching user data...');
+          const userData = await getUserData();
+          if (userData) {
+            navigate('/');
+            toast(data.message || 'Logged in successfully');
+          } else {
+            toast.error('Login successful but failed to load user data');
+          }
         } else {
           toast.error(data.message);
         }
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || "An error occurred")
-      ;
+      toast.error(error.response?.data?.message || error.message || "An error occurred");
     }
   }
 

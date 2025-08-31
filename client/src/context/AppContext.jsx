@@ -14,21 +14,39 @@ export const AppContextProvider = (props) => {
 
     const getUserData = async () => {
         try {
-            const { data } = await axios.get(`${backendUrl}/api/user/profile`, { withCredentials: true });
-            if (data.success) {
+            console.log('Fetching user data from:', `${backendUrl}/api/user/profile`);
+            const { data } = await axios.get(`${backendUrl}/api/user/profile`, { 
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            console.log('User data response:', data);
+            
+            if (data.success && data.userdata) {
                 setUserdata(data.userdata);
+                setIsLoggedin(true);
+                return data.userdata;
             } else {
                 // clear any stale userdata
                 setUserdata(null);
-                toast.error(data.message || 'Failed to load user data');
+                setIsLoggedin(false);
+                console.log('Failed to get user data:', data.message);
+                return null;
             }
         } catch (error) {
+            console.error('Error fetching user data:', error);
             // treat as not logged in when profile fetch fails
             setUserdata(null);
-            // don't spam the user on mount; only show if there's a response message
-            if (error.response?.data?.message) {
-                toast.error(error.response.data.message);
+            setIsLoggedin(false);
+            
+            // Only show error toast if it's not a 401 (unauthorized) error on initial load
+            if (error.response?.status !== 401) {
+                if (error.response?.data?.message) {
+                    toast.error(error.response.data.message);
+                }
             }
+            return null;
         }
     };
 
